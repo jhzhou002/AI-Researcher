@@ -1,0 +1,31 @@
+# ====================
+# Database Configuration (MySQL)
+# ====================
+DATABASE_URL=mysql+pymysql://remote:Zhjh0704.@49.235.74.98:3306/ai_researcher
+SQL_ECHO=False
+
+# ====================
+# Redis Configuration
+# ====================
+REDIS_URL=redis://localhost:6379/0
+
+# ====================
+# LLM API Keys
+# ====================
+
+# DeepSeek (用于测试)
+DEEPSEEK_API_KEY=sk-86b7f0ca0a2d455cb31772ed280cb078
+DEEPSEEK_MODEL=deepseek-chat
+
+# ====================
+# Application Settings
+# ====================
+SECRET_KEY=ai-researcher-secret-key-change-in-production-2024
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# ====================
+# Logging
+# ====================
+LOG_LEVEL=INFO
+LOG_FILE=ai_researcher.log
