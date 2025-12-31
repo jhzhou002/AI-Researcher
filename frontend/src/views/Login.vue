@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center p-4">
+  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black flex items-center justify-center p-4">
     <n-card class="w-full max-w-md" :bordered="false">
       <div class="text-center mb-8">
         <h1 class="text-3xl font-bold text-white mb-2">🔬 AI-Researcher</h1>

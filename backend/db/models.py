@@ -95,6 +95,7 @@ class Paper(Base):
     journal = Column(String(255))
     relevance_score = Column(Float, default=0.0)
     arxiv_id = Column(String(50))
+    partition = Column(String(50))  # 分区/等级
     
     created_at = Column(DateTime, default=datetime.utcnow)
     

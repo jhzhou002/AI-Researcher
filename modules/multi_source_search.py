@@ -4,7 +4,7 @@
 """
 from typing import List, Optional, Dict
 from models import ResearchIntent, PaperMetadata
-from modules.literature_discovery import search_arxiv
+from modules.literature_discovery import search_arxiv, filter_papers
 from modules.semantic_scholar import search_semantic_scholar
 from utils import logger
 import os
@@ -36,8 +36,10 @@ def search_multi_source(
         logger.info("Searching ArXiv...")
         try:
             arxiv_papers = search_arxiv(intent, max_results_per_source)
-            results["arxiv"] = arxiv_papers
-            logger.info(f"ArXiv: Found {len(arxiv_papers)} papers")
+            # 应用过滤
+            filtered_arxiv = filter_papers(arxiv_papers, intent)
+            results["arxiv"] = filtered_arxiv
+            logger.info(f"ArXiv: Found {len(filtered_arxiv)} papers (filtered from {len(arxiv_papers)})")
         except Exception as e:
             logger.error(f"ArXiv search failed: {e}")
             results["arxiv"] = []
@@ -54,8 +56,10 @@ def search_multi_source(
                 year_end=intent.year_end,
                 api_key=s2_api_key
             )
-            results["semantic_scholar"] = s2_papers
-            logger.info(f"Semantic Scholar: Found {len(s2_papers)} papers")
+            # 再次应用通用过滤以确保一致性
+            filtered_s2 = filter_papers(s2_papers, intent)
+            results["semantic_scholar"] = filtered_s2
+            logger.info(f"Semantic Scholar: Found {len(filtered_s2)} papers (filtered from {len(s2_papers)})")
         except Exception as e:
             logger.error(f"Semantic Scholar search failed: {e}")
             results["semantic_scholar"] = []

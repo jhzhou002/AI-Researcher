@@ -166,6 +166,12 @@ def convert_s2_to_metadata(s2_paper: Dict[str, Any]) -> PaperMetadata:
     pub_date = s2_paper.get("publicationDate") or str(s2_paper.get("year", ""))
     
     # 创建元数据对象
+    journal = s2_paper.get("venue")
+    partition = None
+    if journal:
+        from modules.venue_utils import get_venue_partition
+        partition = get_venue_partition(journal)
+    
     metadata = PaperMetadata(
         title=title,
         authors=authors,
@@ -173,7 +179,8 @@ def convert_s2_to_metadata(s2_paper: Dict[str, Any]) -> PaperMetadata:
         url=url or f"https://www.semanticscholar.org/paper/{s2_paper.get('paperId', '')}",
         published=pub_date,
         paper_type=paper_type,
-        journal=s2_paper.get("venue"),
+        journal=journal,
+        partition=partition,
         relevance_score=0.0,  # 后续计算
         arxiv_id=s2_paper.get("externalIds", {}).get("ArXiv")
     )

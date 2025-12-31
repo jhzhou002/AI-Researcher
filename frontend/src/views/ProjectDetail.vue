@@ -37,7 +37,7 @@
           <div class="flex flex-wrap gap-4">
             <n-button 
               type="primary" 
-              :disabled="currentStep > 1 || runningTask !== null"
+              :disabled="currentStep !== 1 || runningTask !== null"
               :loading="runningTask === 'discover'"
               @click="startTask('discover')"
             >
@@ -46,7 +46,7 @@
             
             <n-button 
               type="info" 
-              :disabled="currentStep < 1 || runningTask !== null"
+              :disabled="currentStep !== 2 || runningTask !== null"
               :loading="runningTask === 'analyze'"
               @click="startTask('analyze')"
             >
@@ -55,7 +55,7 @@
             
             <n-button 
               type="warning" 
-              :disabled="currentStep < 2 || runningTask !== null"
+              :disabled="currentStep !== 3 || runningTask !== null"
               :loading="runningTask === 'landscape'"
               @click="startTask('landscape')"
             >
@@ -64,7 +64,7 @@
             
             <n-button 
               type="success" 
-              :disabled="currentStep < 3 || runningTask !== null"
+              :disabled="currentStep !== 4 || runningTask !== null"
               :loading="runningTask === 'ideas'"
               @click="startTask('ideas')"
             >
@@ -99,6 +99,19 @@
           <n-tabs type="line" animated>
             <!-- Papers Tab -->
             <n-tab-pane name="papers" tab="📄 论文列表">
+              <div class="flex justify-between items-center mb-4">
+                 <span class="text-gray-400 text-sm">共 {{ papers.length }} 篇文献</span>
+                 <n-button 
+                    size="small" 
+                    secondary 
+                    type="primary" 
+                    @click="downloadFile('papers', 'excel')" 
+                    :disabled="papers.length === 0"
+                 >
+                    📥 导出 Excel
+                 </n-button>
+              </div>
+
               <div v-if="papers.length === 0" class="text-center py-8 text-gray-400">
                 暂无论文，请先运行文献检索
               </div>
@@ -114,9 +127,17 @@
                       相关度: {{ (paper.relevance_score * 100).toFixed(0) }}%
                     </n-tag>
                   </div>
-                  <p class="text-gray-400 text-sm line-clamp-2">{{ paper.abstract }}</p>
-                  <div class="mt-2 text-xs text-gray-500">
-                    {{ paper.published }} | {{ paper.authors?.slice(0, 3).join(', ') }}
+                  <p class="text-gray-400 text-sm line-clamp-2 my-2">{{ paper.abstract }}</p>
+                  <div class="mt-2 text-xs text-gray-500 flex justify-between items-center">
+                    <span>{{ paper.published }} | {{ paper.authors?.slice(0, 3).join(', ') }}</span>
+                    <div class="flex gap-2">
+                       <n-tag v-if="paper.partition" size="small" :type="paper.partition === 'CCF-A' ? 'error' : 'success'" ghost>
+                        {{ paper.partition }}
+                      </n-tag>
+                      <n-tag v-if="paper.journal" size="small" type="warning" ghost>
+                        {{ paper.journal }}
+                      </n-tag>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -124,6 +145,20 @@
             
             <!-- Ideas Tab -->
             <n-tab-pane name="ideas" tab="💡 研究想法">
+              <div class="flex justify-between items-center mb-4">
+                 <span class="text-gray-400 text-sm">共 {{ ideas.length }} 个想法</span>
+                 <n-dropdown :options="exportOptions" @select="handleExportSelect">
+                   <n-button 
+                      size="small" 
+                      secondary 
+                      type="primary"
+                      :disabled="ideas.length === 0"
+                   >
+                      📥 导出
+                   </n-button>
+                 </n-dropdown>
+              </div>
+
               <div v-if="ideas.length === 0" class="text-center py-8 text-gray-400">
                 暂无想法，请完成前序步骤后生成
               </div>
@@ -173,13 +208,36 @@ const currentTask = ref(null)
 const runningTask = ref(null)
 let pollInterval = null
 
+const exportOptions = [
+  { label: '导出 Excel', key: 'excel' },
+  { label: '导出 Markdown', key: 'markdown' }
+]
+
+function handleExportSelect(key) {
+  downloadFile('ideas', key)
+}
+
 const currentStep = computed(() => {
-  const steps = { 'init': 0, 'discovery': 1, 'analysis': 2, 'landscape': 3, 'ideas': 4 }
-  return steps[project.value?.current_step] || 0
+  if (!project.value?.current_step) return 0
+  
+  const status = project.value.current_step.toString().toLowerCase().trim()
+  
+  const steps = { 
+    'intent': 1, 
+    'init': 0, 
+    'discovery': 2, 
+    'analysis': 3, 
+    'landscape': 4, 
+    'ideas': 5,
+    'completed': 6
+  }
+  
+  return steps[status] !== undefined ? steps[status] : 1
 })
 
 function getStepLabel(step) {
   const labels = {
+    'intent': '未开始',
     'init': '未开始',
     'discovery': '已检索',
     'analysis': '已分析',
@@ -191,6 +249,7 @@ function getStepLabel(step) {
 
 function getStepTagType(step) {
   const types = {
+    'intent': 'default',
     'init': 'default',
     'discovery': 'info',
     'analysis': 'warning',
@@ -293,6 +352,43 @@ function startPolling(taskId) {
       console.error('Poll error:', e)
     }
   }, 2000)
+}
+
+async function downloadFile(type, format = 'excel') {
+  try {
+    const projectId = route.params.id
+    let blob
+    let filename
+    
+    message.loading('正在导出...', { duration: 0 })
+    
+    if (type === 'papers') {
+      blob = await projectsApi.exportPapers(projectId)
+      filename = `papers_project_${projectId}.xlsx`
+    } else {
+      blob = await projectsApi.exportIdeas(projectId, format)
+      filename = `ideas_project_${projectId}.${format === 'excel' ? 'xlsx' : 'md'}`
+    }
+    
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([blob]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', filename)
+    document.body.appendChild(link)
+    link.click()
+    
+    // Cleanup
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    
+    message.destroyAll()
+    message.success('导出成功')
+  } catch (e) {
+    message.destroyAll()
+    console.error('Download error:', e)
+    message.error('导出失败')
+  }
 }
 
 function stopPolling() {

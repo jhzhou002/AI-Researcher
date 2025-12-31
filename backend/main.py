@@ -90,6 +90,12 @@ app.include_router(tasks.router, prefix="/api/tasks", tags=["任务管理"])
 app.include_router(workflows.router, prefix="/api/workflows", tags=["工作流"])
 app.include_router(monitor.router, prefix="/api/monitor", tags=["监控"])
 
+from backend.api import export
+app.include_router(export.router, prefix="/api/projects", tags=["导出"])
+
+from backend.api import export
+app.include_router(export.router, prefix="/api/projects", tags=["导出"])
+
 
 if __name__ == "__main__":
     import uvicorn

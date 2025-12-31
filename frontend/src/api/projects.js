@@ -27,5 +27,16 @@ export const projectsApi = {
 
     async getIdeas(id) {
         return request.get(`/api/projects/${id}/ideas`)
+    },
+
+    async exportPapers(id) {
+        return request.get(`/api/projects/${id}/export/papers`, { responseType: 'blob' })
+    },
+
+    async exportIdeas(id, format = 'excel') {
+        return request.get(`/api/projects/${id}/export/ideas`, {
+            params: { format },
+            responseType: 'blob'
+        })
     }
 }

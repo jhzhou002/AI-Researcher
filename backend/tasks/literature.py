@@ -102,7 +102,8 @@ def literature_discovery_task(self, project_id: int, max_results: int = 50):
                     paper_type=paper.paper_type.value if paper.paper_type else None,
                     journal=paper.journal,
                     relevance_score=paper.relevance_score,
-                    arxiv_id=paper.arxiv_id
+                    arxiv_id=paper.arxiv_id,
+                    partition=paper.partition
                 )
                 db.add(db_paper)
                 saved_count += 1

@@ -65,6 +65,7 @@ class PaperMetadata:
     journal: Optional[str] = None
     relevance_score: float = 0.0  # 相关度评分
     arxiv_id: Optional[str] = None
+    partition: Optional[str] = None  # 分区
     
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典"""

@@ -102,6 +102,8 @@ def search_arxiv(intent: ResearchIntent, max_results: int) -> List[PaperMetadata
                 url=result.pdf_url,
                 published=result.published.strftime("%Y-%m-%d"),
                 arxiv_id=arxiv_id,
+                journal="ArXiv",
+                partition="Preprint",
                 relevance_score=0.0  # 初始化，后续计算
             )
             papers.append(paper)
